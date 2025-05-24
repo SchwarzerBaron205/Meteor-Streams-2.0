@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import logging
 from pathlib import Path
-from typing import List, Dict  # Добавлен импорт Dict
+from typing import List, Dict  
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,7 +15,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def calculate_r(magnitudes: List[float]) -> float:
+    
     """Расчет популяционного индекса r со сглаживанием"""
+    
     if len(magnitudes) < 3:
         raise ValueError("Слишком мало данных для расчета")
     
@@ -39,7 +41,9 @@ def calculate_r(magnitudes: List[float]) -> float:
     return np.mean(ratios)
 
 def load_data(file_path: Path) -> List[float]:
+    
     """Чтение данных из файла"""
+    
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return [float(line.strip()) for line in f if line.strip()]
@@ -48,7 +52,9 @@ def load_data(file_path: Path) -> List[float]:
         raise
 
 def calculate_statistics(zhr_values: List[float], expected_zhr: float = None) -> dict:
+    
     """Расчёт статистических показателей"""
+    
     stats = {
         'mean': np.nanmean(zhr_values),
         'std_dev': np.nanstd(zhr_values),
@@ -65,9 +71,12 @@ def calculate_statistics(zhr_values: List[float], expected_zhr: float = None) ->
     return stats
 
 def save_report(results: List[Dict], params: Dict, stats: Dict, output_file: Path):
+    
     """Сохранение отчёта с расширенной статистикой"""
+    
     try:
         with open(output_file, 'w', encoding='utf-8') as f:
+            
             f.write("=== ОТЧЁТ О НАБЛЮДЕНИЯХ МЕТЕОРНОГО ПОТОКА ===\n\n")
             
             f.write("ОБЩИЕ ПАРАМЕТРЫ:\n")
@@ -83,13 +92,16 @@ def save_report(results: List[Dict], params: Dict, stats: Dict, output_file: Pat
             f.write(f"Дисперсия: {stats['variance']:.2f}\n")
             
             if 'bias' in stats:
+                
                 f.write(f"\nСРАВНЕНИЕ С ТЕОРИЕЙ:\n")
                 f.write(f"Ожидаемый ZHR: {params['expected_zhr']:.2f}\n")
                 f.write(f"Систематическое отклонение: {stats['bias']:.2f}\n")
                 f.write(f"Относительная погрешность: {stats['relative_error']:.2f}%\n")
             
             f.write("\nПОЧАСОВЫЕ РЕЗУЛЬТАТЫ:\n")
+            
             for idx, res in enumerate(results, 1):
+                
                 f.write(f"\nЧас {idx}:\n")
                 f.write(f"• Метеоров: {params['counts'][idx-1]}\n")
                 f.write(f"• Высота радианта: {params['hr'][idx-1]}°\n")
@@ -100,10 +112,13 @@ def save_report(results: List[Dict], params: Dict, stats: Dict, output_file: Pat
                 f.write(f"► Отклонение от среднего: {stats['deviations'][idx-1]:.2f}\n")
                 
     except Exception as e:
+        
         logger.error(f"Ошибка записи отчёта: {str(e)}")
+        
         raise
 
 def main():
+    
     parser = argparse.ArgumentParser(
         description='Расчёт ZHR с расширенной статистикой',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -123,13 +138,14 @@ def main():
     args = parser.parse_args()
 
     try:
-        # Исправленная валидация
+
         params_lens = {
             len(args.counts), 
             len(args.hr), 
             len(args.k), 
             len(args.lm)
         }
+        
         if len(params_lens) != 1 or args.hours != len(args.counts):
             raise ValueError("Несоответствие количества параметров")
 
@@ -138,10 +154,10 @@ def main():
         
         # Расчет ZHR для каждого часа
         for hour in range(args.hours):
-            # Рассчет популяционного индекса
+            # Расчет популяционного индекса
             r = calculate_r(magnitudes)
             
-            # Рассчет ZHR (формула-заглушка, нужно реализовать вашу формулу)
+            # Расчет ZHR = (Nk r^(6.5 - lm))/sin(hr)
             sin_hr = math.sin(math.radians(args.hr[hour]))
             zhr = (args.counts[hour] * args.k[hour] * r**(6.5 - args.lm[hour])) / (sin_hr)
             
